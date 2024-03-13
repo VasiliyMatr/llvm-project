@@ -208,6 +208,10 @@ N: Andrei Safronov
 E: andrei.safronov@espressif.com
 D: Xtensa backend (lib/Target/Xtensa/*)
 
+N: Matrenin Vasilii
+E: vasiliymatrenin@gmail.com
+D: Bachelors CPU (BCpu) backend (lib/Target/BCpu/*)
+
 N: Duncan Sands
 E: baldrick@free.fr
 D: DragonEgg
