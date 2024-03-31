@@ -1,11 +1,14 @@
 // BCpu target descriptions
 
+#include "llvm/MC/MCDwarf.h"
 #include "llvm/MC/MCInstrInfo.h"
 #include "llvm/MC/MCRegisterInfo.h"
 #include "llvm/MC/MCSubtargetInfo.h"
 #include "llvm/MC/TargetRegistry.h"
+#include "llvm/Support/ErrorHandling.h"
 
 #include "BCpu.h"
+#include "BCpuMCAsmInfo.h"
 #include "BCpuMCTargetDesc.h"
 #include "MCTargetDesc/BCpuInfo.h"
 #include "TargetInfo/BCpuTargetInfo.h"
@@ -44,6 +47,18 @@ static MCSubtargetInfo *createBCpuMCSubtargetInfo(const Triple &TT,
   return createBCpuMCSubtargetInfoImpl(TT, CPU, /* TuneCPU */ CPU, FS);
 }
 
+static MCAsmInfo *createBCpuMCAsmInfo(const MCRegisterInfo &MRI,
+                                      const Triple &TT,
+                                      const MCTargetOptions &Options) {
+  BCPU_DUMP_LOCATION();
+
+  MCAsmInfo *MAI = new BCpuELFMCAsmInfo(TT);
+  unsigned SP = MRI.getDwarfRegNum(BCpu::R1, true);
+  MCCFIInstruction Inst = MCCFIInstruction::cfiDefCfa(nullptr, SP, 0);
+  MAI->addInitialFrameState(Inst);
+  return MAI;
+}
+
 // We need to define this function for linking succeed
 extern "C" void LLVMInitializeBCpuTargetMC() {
   BCPU_DUMP_LOCATION();
@@ -54,7 +69,9 @@ extern "C" void LLVMInitializeBCpuTargetMC() {
   TargetRegistry::RegisterMCRegInfo(bcpu_target, createBCpuMCRegisterInfo);
   // Register MC instruction info.
   TargetRegistry::RegisterMCInstrInfo(bcpu_target, createBCpuMCInstrInfo);
-  // Register the MC subtarget info.
+  // Register MC subtarget info.
   TargetRegistry::RegisterMCSubtargetInfo(bcpu_target,
                                           createBCpuMCSubtargetInfo);
+  // Register MC asm info
+  RegisterMCAsmInfoFn asm_info(bcpu_target, createBCpuMCAsmInfo);
 }

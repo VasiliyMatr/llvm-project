@@ -1,5 +1,6 @@
 add_llvm_component_library(LLVMBCpuDesc
     BCpuMCTargetDesc.cpp
+    BCpuMCAsmInfo.cpp
 
     LINK_COMPONENTS
     MC
