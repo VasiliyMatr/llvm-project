@@ -3,12 +3,14 @@ add_llvm_component_group(BCpu)
 set(LLVM_TARGET_DEFINITIONS BCpu.td)
 
 tablegen(LLVM BCpuGenRegisterInfo.inc -gen-register-info)
+tablegen(LLVM BCpuGenInstrInfo.inc -gen-instr-info)
 
 add_public_tablegen_target(BCpuCommonTableGen)
 
 add_llvm_target(BCpuCodeGen
     BCpuTargetMachine.cpp
     BCpuRegisterInfo.cpp
+    BCpuInstrInfo.cpp
 
     LINK_COMPONENTS
     CodeGen
