@@ -11,9 +11,6 @@
 
 namespace llvm {
 
-// General purpose BCpu subtarget
-class BCpuSubtargetA;
-
 struct BCpuInstrInfo : public BCpuGenInstrInfo {
   BCpuInstrInfo();
 };
