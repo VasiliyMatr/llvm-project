@@ -1,5 +1,5 @@
-#include "BCpuTargetMachine.h"
-#include "TargetInfo/BCpuTargetInfo.h"
+#include <optional>
+
 #include "llvm/CodeGen/Passes.h"
 #include "llvm/CodeGen/TargetLoweringObjectFileImpl.h"
 #include "llvm/CodeGen/TargetPassConfig.h"
@@ -7,11 +7,15 @@
 #include "llvm/MC/TargetRegistry.h"
 #include "llvm/Support/CodeGen.h"
 #include "llvm/Transforms/Scalar.h"
-#include <optional>
+
+#include "BCpu.h"
+#include "BCpuTargetMachine.h"
+#include "TargetInfo/BCpuTargetInfo.h"
 
 using namespace llvm;
 
 extern "C" LLVM_EXTERNAL_VISIBILITY void LLVMInitializeBCpuTarget() {
+  BCPU_DUMP_LOCATION();
   // Register the target
   RegisterTargetMachine<BCpuTargetMachine> reg_bcpu_machine(getBCpuTarget());
 }
@@ -41,6 +45,7 @@ BCpuTargetMachine::BCpuTargetMachine(const Target &T, const Triple &TT,
                         CPU, FS, Options, getEffectiveRelocModel(JIT, RM),
                         getEffectiveCodeModel(CM, CodeModel::Small), OL),
       TLOF(std::make_unique<TargetLoweringObjectFileELF>()) {
+  BCPU_DUMP_LOCATION();
   initAsmInfo();
 }
 
