@@ -4,6 +4,7 @@ include "llvm/Target/Target.td"
 
 include "BCpuRegisterInfo.td"
 include "BCpuInstrInfo.td"
+include "BCpuCallingConv.td"
 
 class BCpuProcessor<string Name, list<SubtargetFeature> Features>: Processor<Name, NoItineraries, Features>;
 

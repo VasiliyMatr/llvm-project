@@ -5,6 +5,7 @@ set(LLVM_TARGET_DEFINITIONS BCpu.td)
 tablegen(LLVM BCpuGenRegisterInfo.inc -gen-register-info)
 tablegen(LLVM BCpuGenInstrInfo.inc -gen-instr-info)
 tablegen(LLVM BCpuGenSubtargetInfo.inc -gen-subtarget)
+tablegen(LLVM BCpuGenCallingConv.inc -gen-callingconv)
 
 add_public_tablegen_target(BCpuCommonTableGen)
 
