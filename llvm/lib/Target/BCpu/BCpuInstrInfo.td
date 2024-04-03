@@ -13,18 +13,18 @@ class BCpuImmAsmOperand<int width> : AsmOperandClass {
     let DiagnosticType = !strconcat("Invalid", Name);
 }
 
-// For lower imm
-def bcpu_imm20 : Operand<i32>, ImmLeaf<i32, [{return isInt<20>(Imm);}]> {
-    let ParserMatchClass = BCpuImmAsmOperand<20>;
+// 16-bit signed imm
+def simm16 : Operand<i32>, ImmLeaf<i32, [{return isInt<16>(Imm);}]> {
+    let ParserMatchClass = BCpuImmAsmOperand<16>;
     let EncoderMethod = "getImmOpValue";
-    let DecoderMethod = "decodeBCpuImmOperand<20>";
+    let DecoderMethod = "decodeBCpuImmOperand<16>";
     let MCOperandPredicate = [{
         int64_t Imm;
         if (MCOp.evaluateAsConstantImm(Imm))
-            return isInt<20>(Imm);
+            return isInt<16>(Imm);
         return MCOp.isBareSymbolRef();
     }];
-    let OperandType = "OPERAND_BCPU_IMM20";
+    let OperandType = "OPERAND_SIMM16";
     let OperandNamespace = "BCpuOp";
 }
 
@@ -41,5 +41,5 @@ def PseudoRET : BCpuPseudoInstr<(outs), (ins), "# PseudoRET", [(bcpu_ret)]>,
 
 // movli
 let isAsCheapAsAMove = 1, isCodeGenOnly = 1, isReMaterializable = 1 in
-def MOVLI : BCpuInstr<0x02, (outs GPR:$rd), (ins bcpu_imm20:$imm),
-                "MOVli $rd $imm", [(set GPR:$rd, bcpu_imm20:$imm)]>;
+def MOVLI : BCpuInstr<0x02, (outs GPR:$rd), (ins simm16:$imm),
+                "MOVli $rd $imm", [(set GPR:$rd, simm16:$imm)]>;
