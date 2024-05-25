@@ -7,9 +7,11 @@
 
 namespace llvm {
 
+class BCpuSubtarget;
+
 class BCpuFrameLowering final : public TargetFrameLowering {
 public:
-  explicit BCpuFrameLowering()
+  explicit BCpuFrameLowering(const BCpuSubtarget &STI)
       : TargetFrameLowering(TargetFrameLowering::StackGrowsDown, Align(4), 0) {
     BCPU_DUMP_LOCATION();
   }

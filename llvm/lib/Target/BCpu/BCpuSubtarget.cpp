@@ -11,8 +11,9 @@ using namespace llvm;
 #define GET_SUBTARGETINFO_CTOR
 #include "BCpuGenSubtargetInfo.inc"
 
-BCpuSubtarget::BCpuSubtarget(const StringRef &CPU, const StringRef &TuneCPU,
+BCpuSubtarget::BCpuSubtarget(const Triple &TT, const StringRef &CPU,
                              const StringRef &FS, const TargetMachine &TM)
-    : BCpuGenSubtargetInfo(TM.getTargetTriple(), CPU, TuneCPU, FS) {
+    : BCpuGenSubtargetInfo(TM.getTargetTriple(), CPU, /* TuneCPU = */ CPU, FS),
+      InstrInfo(), FrameLowering(*this), TLInfo(TM, *this) {
   BCPU_DUMP_LOCATION();
 }
