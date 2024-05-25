@@ -8,8 +8,10 @@
 #include "llvm/Support/ErrorHandling.h"
 
 #include "BCpu.h"
+#include "BCpuInstPrinter.h"
 #include "BCpuMCAsmInfo.h"
 #include "BCpuMCTargetDesc.h"
+#include "BCpuTargetStreamer.h"
 #include "MCTargetDesc/BCpuInfo.h"
 #include "TargetInfo/BCpuTargetInfo.h"
 
@@ -59,6 +61,23 @@ static MCAsmInfo *createBCpuMCAsmInfo(const MCRegisterInfo &MRI,
   return MAI;
 }
 
+static MCInstPrinter *createBCpuMCInstPrinter(const Triple &T,
+                                              unsigned SyntaxVariant,
+                                              const MCAsmInfo &MAI,
+                                              const MCInstrInfo &MII,
+                                              const MCRegisterInfo &MRI) {
+  return new BCpuInstPrinter(MAI, MII, MRI);
+}
+
+BCpuTargetStreamer::BCpuTargetStreamer(MCStreamer &S) : MCTargetStreamer(S) {}
+
+static MCTargetStreamer *createTargetAsmStreamer(MCStreamer &S,
+                                                 formatted_raw_ostream &OS,
+                                                 MCInstPrinter *InstPrint,
+                                                 bool isVerboseAsm) {
+  return new BCpuTargetStreamer(S);
+}
+
 // We need to define this function for linking succeed
 extern "C" void LLVMInitializeBCpuTargetMC() {
   BCPU_DUMP_LOCATION();
@@ -74,4 +93,9 @@ extern "C" void LLVMInitializeBCpuTargetMC() {
                                           createBCpuMCSubtargetInfo);
   // Register MC asm info
   RegisterMCAsmInfoFn asm_info(bcpu_target, createBCpuMCAsmInfo);
+
+  // Register the MCInstPrinter
+  TargetRegistry::RegisterMCInstPrinter(bcpu_target, createBCpuMCInstPrinter);
+  TargetRegistry::RegisterAsmTargetStreamer(bcpu_target,
+                                            createTargetAsmStreamer);
 }

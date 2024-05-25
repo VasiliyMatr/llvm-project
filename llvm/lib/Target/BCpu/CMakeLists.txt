@@ -7,6 +7,8 @@ tablegen(LLVM BCpuGenInstrInfo.inc -gen-instr-info)
 tablegen(LLVM BCpuGenSubtargetInfo.inc -gen-subtarget)
 tablegen(LLVM BCpuGenCallingConv.inc -gen-callingconv)
 tablegen(LLVM BCpuGenDAGISel.inc -gen-dag-isel)
+tablegen(LLVM BCpuGenMCPseudoLowering.inc -gen-pseudo-lowering)
+tablegen(LLVM BCpuGenAsmWriter.inc -gen-asm-writer)
 
 add_public_tablegen_target(BCpuCommonTableGen)
 
@@ -17,12 +19,17 @@ add_llvm_target(BCpuCodeGen
     BCpuSubtarget.cpp
     BCpuISelLowering.cpp
     BCpuISelDagToDag.cpp
+    BCpuMCInstLower.cpp
+    BCpuAsmPrinter.cpp
 
     LINK_COMPONENTS
+    AsmPrinter
     CodeGen
     Core
     Support
     Target
+    MC
+    BCpuDesc
     BCpuInfo
     SelectionDAG
 
