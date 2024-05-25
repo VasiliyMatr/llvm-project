@@ -15,6 +15,7 @@
 #include "llvm/IR/Intrinsics.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/ErrorHandling.h"
+#include "llvm/CodeGen/MachineFunction.h"
 
 #include "BCpu.h"
 #include "BCpuISelLowering.h"
@@ -24,11 +25,11 @@
 #include "BCpuTargetMachine.h"
 #include "MCTargetDesc/BCpuInfo.h"
 
+using namespace llvm;
+
 #define GET_CC_REGISTER_LISTS
 #include <BCpuGenCallingConv.inc>
 #undef GET_CC_REGISTER_LISTS
-
-using namespace llvm;
 
 void BCpuTargetLowering::ReplaceNodeResults(SDNode *N,
                                             SmallVectorImpl<SDValue> &Results,
@@ -223,7 +224,7 @@ SDValue BCpuTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
     Glue = Chain.getValue(1);
   }
 
-  if (GlobalAddressSDNode *S = dyn_cast<GlobalAddressSDNode>(Callee)) {
+  if (dyn_cast<GlobalAddressSDNode>(Callee) != nullptr) {
     llvm_unreachable("No external symbols support!");
   }
 

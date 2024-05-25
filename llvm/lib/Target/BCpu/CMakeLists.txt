@@ -6,6 +6,7 @@ tablegen(LLVM BCpuGenRegisterInfo.inc -gen-register-info)
 tablegen(LLVM BCpuGenInstrInfo.inc -gen-instr-info)
 tablegen(LLVM BCpuGenSubtargetInfo.inc -gen-subtarget)
 tablegen(LLVM BCpuGenCallingConv.inc -gen-callingconv)
+tablegen(LLVM BCpuGenDAGISel.inc -gen-dag-isel)
 
 add_public_tablegen_target(BCpuCommonTableGen)
 
@@ -14,6 +15,8 @@ add_llvm_target(BCpuCodeGen
     BCpuRegisterInfo.cpp
     BCpuInstrInfo.cpp
     BCpuSubtarget.cpp
+    BCpuISelLowering.cpp
+    BCpuISelDagToDag.cpp
 
     LINK_COMPONENTS
     CodeGen
@@ -21,6 +24,7 @@ add_llvm_target(BCpuCodeGen
     Support
     Target
     BCpuInfo
+    SelectionDAG
 
     ADD_TO_COMPONENT
     BCpu

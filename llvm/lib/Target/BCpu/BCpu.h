@@ -15,4 +15,13 @@
     llvm::errs().changeColor(llvm::raw_ostream::WHITE);                        \
   }
 
+namespace llvm {
+
+class BCpuTargetMachine;
+class FunctionPass;
+
+FunctionPass *createBCpuISelDag(BCpuTargetMachine &TM);
+
+} // namespace llvm
+
 #endif // BCPU_H
