@@ -19,6 +19,16 @@ namespace llvm {
 
 class BCpuTargetMachine;
 class FunctionPass;
+class MachineInstr;
+class MCInst;
+class AsmPrinter;
+class MachineOperand;
+class MCOperand;
+
+bool lowerBCpuMachineInstrToMCInst(const MachineInstr *MI, MCInst &OutMI,
+                                   AsmPrinter &AP);
+bool lowerBCpuMachineOperandToMCOperand(const MachineOperand &MO,
+                                        MCOperand &MCOp, const AsmPrinter &AP);
 
 FunctionPass *createBCpuISelDag(BCpuTargetMachine &TM);
 
