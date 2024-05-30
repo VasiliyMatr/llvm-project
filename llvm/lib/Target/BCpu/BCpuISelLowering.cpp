@@ -92,25 +92,33 @@ SDValue BCpuTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
                                       SmallVectorImpl<SDValue> &InVals) const {
   SelectionDAG &DAG = CLI.DAG;
   SDLoc &DL = CLI.DL;
+  MachineFunction &MF = DAG.getMachineFunction();
+  MachineFrameInfo &MFI = MF.getFrameInfo();
+  CallingConv::ID CallConv = CLI.CallConv;
+  EVT PtrVT = getPointerTy(DAG.getDataLayout());
+
   SmallVectorImpl<ISD::OutputArg> &Outs = CLI.Outs;
   SmallVectorImpl<SDValue> &OutVals = CLI.OutVals;
   SmallVectorImpl<ISD::InputArg> &Ins = CLI.Ins;
+
   SDValue Chain = CLI.Chain;
   SDValue Callee = CLI.Callee;
-  assert(!CLI.IsTailCall);
-  CallingConv::ID CallConv = CLI.CallConv;
-  bool IsVarArg = CLI.IsVarArg;
-  EVT PtrVT = getPointerTy(DAG.getDataLayout());
 
-  MachineFunction &MF = DAG.getMachineFunction();
+  assert(!CLI.IsTailCall && "No tail call support");
+  assert(!CLI.IsVarArg && "No var arg support");
 
   // Analyze the operands of the call, assigning locations to each operand.
   SmallVector<CCValAssign, 16> ArgLocs;
-  CCState CCInfo(CallConv, IsVarArg, MF, ArgLocs, *DAG.getContext());
+  CCState CCInfo(CallConv, false, MF, ArgLocs, *DAG.getContext());
   CCInfo.AnalyzeCallOperands(Outs, CC_BCpu);
 
   // Get a count of how many bytes are to be pushed on the stack.
   unsigned NumBytes = CCInfo.getStackSize();
+
+  // Update MachineFrameInfo
+  MFI.setHasCalls(true);
+  unsigned CurrMaxCallFrameSize = MF.getFrameInfo().getMaxCallFrameSize();
+  MF.getFrameInfo().setMaxCallFrameSize(std::max(CurrMaxCallFrameSize, NumBytes));
 
   // Create local copies for byval args
   SmallVector<SDValue, 8> ByValArgs;
@@ -224,8 +232,11 @@ SDValue BCpuTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
     Glue = Chain.getValue(1);
   }
 
-  if (dyn_cast<GlobalAddressSDNode>(Callee) != nullptr) {
-    llvm_unreachable("No external symbols support!");
+  // No external symbols support
+  if (GlobalAddressSDNode *S = dyn_cast<GlobalAddressSDNode>(Callee)) {
+    const GlobalValue *GV = S->getGlobal();
+    assert(getTargetMachine().shouldAssumeDSOLocal(*GV->getParent(), GV));
+    Callee = DAG.getTargetGlobalAddress(GV, DL, PtrVT, 0, 0);
   }
 
   // The first call operand is the chain and the second is the target address.
@@ -261,7 +272,7 @@ SDValue BCpuTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
 
   // Assign locations to each value returned by this call.
   SmallVector<CCValAssign, 16> RVLocs;
-  CCState RetCCInfo(CallConv, IsVarArg, MF, RVLocs, *DAG.getContext());
+  CCState RetCCInfo(CallConv, false, MF, RVLocs, *DAG.getContext());
   RetCCInfo.AnalyzeCallResult(Ins, RetCC_BCpu);
 
   // Copy all of the result registers out of their specified physreg.
