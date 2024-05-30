@@ -21,6 +21,7 @@ add_llvm_target(BCpuCodeGen
     BCpuISelDagToDag.cpp
     BCpuMCInstLower.cpp
     BCpuAsmPrinter.cpp
+    BCpuFrameLowering.cpp
 
     LINK_COMPONENTS
     AsmPrinter
