@@ -17,8 +17,8 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include "BCpu.h"
-#include "BCpuSubtarget.h"
 #include "BCpuISelLowering.h"
+#include "BCpuSubtarget.h"
 #include "BCpuTargetMachine.h"
 #include "MCTargetDesc/BCpuMCTargetDesc.h"
 
@@ -40,6 +40,9 @@ public:
     return SelectionDAGISel::runOnMachineFunction(MF);
   }
 
+  bool SelectAddrFI(SDValue Addr, SDValue &Base);
+  bool SelectBaseAddr(SDValue Addr, SDValue &Base);
+
   void Select(SDNode *N) override;
 
   StringRef getPassName() const override {
@@ -60,6 +63,22 @@ FunctionPass *llvm::createBCpuISelDag(BCpuTargetMachine &TM) {
   return new BCpuDAGToDAGISel(TM);
 }
 
+bool BCpuDAGToDAGISel::SelectAddrFI(SDValue Addr, SDValue &Base) {
+  if (auto *FIN = dyn_cast<FrameIndexSDNode>(Addr)) {
+    Base = CurDAG->getTargetFrameIndex(FIN->getIndex(), MVT::i32);
+    return true;
+  }
+  return false;
+}
+
+bool BCpuDAGToDAGISel::SelectBaseAddr(SDValue Addr, SDValue &Base) {
+  if (auto *FIN = dyn_cast<FrameIndexSDNode>(Addr))
+    Base = CurDAG->getTargetFrameIndex(FIN->getIndex(), MVT::i32);
+  else
+    Base = Addr;
+  return true;
+}
+
 void BCpuDAGToDAGISel::Select(SDNode *Node) {
   // Already selected -> maybe error!
   if (Node->isMachineOpcode()) {
@@ -68,8 +87,21 @@ void BCpuDAGToDAGISel::Select(SDNode *Node) {
     Node->setNodeId(-1);
     return;
   }
+  unsigned Opcode = Node->getOpcode();
 
   // Do isel
   SDLoc DL(Node);
+  MVT VT = Node->getSimpleValueType(0);
+
+  switch (Opcode) {
+  case ISD::FrameIndex: {
+    SDValue Imm = CurDAG->getTargetConstant(0, DL, MVT::i32);
+    int FI = cast<FrameIndexSDNode>(Node)->getIndex();
+    SDValue TFI = CurDAG->getTargetFrameIndex(FI, VT);
+    ReplaceNode(Node, CurDAG->getMachineNode(BCpu::ADDI, DL, VT, TFI, Imm));
+    return;
+  }
+  }
+
   SelectCode(Node);
 }

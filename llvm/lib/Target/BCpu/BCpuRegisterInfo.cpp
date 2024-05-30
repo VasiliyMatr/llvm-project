@@ -76,3 +76,9 @@ bool BCpuRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
 Register BCpuRegisterInfo::getFrameRegister(const MachineFunction &MF) const {
   return getFrameLowering(MF)->hasFP(MF) ? BCpu::R2 : BCpu::R1; // FP or SP
 }
+
+const uint32_t *
+BCpuRegisterInfo::getCallPreservedMask(const MachineFunction &MF,
+                                       CallingConv::ID CC) const {
+  return CSR_BCpu_RegMask;
+}

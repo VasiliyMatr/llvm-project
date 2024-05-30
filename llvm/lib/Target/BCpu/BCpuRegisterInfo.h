@@ -15,6 +15,9 @@ struct BCpuRegisterInfo final : public BCpuGenRegisterInfo {
 
   BitVector getReservedRegs(const MachineFunction &MF) const override;
 
+  const uint32_t *getCallPreservedMask(const MachineFunction &MF,
+                                       CallingConv::ID CC) const override;
+
   bool eliminateFrameIndex(MachineBasicBlock::iterator II, int SPAdj,
                            unsigned FIOperandNum,
                            RegScavenger *RS = nullptr) const override;
