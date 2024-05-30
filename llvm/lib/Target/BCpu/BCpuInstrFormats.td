@@ -8,7 +8,7 @@
 //     ^       - R2
 //       ^^ ^^ - R3 or Imm16
 
-class BCpuInstr<bits<8> op, dag outs, dag ins, string asmstr, list<dag> pattern>: Instruction
+class BCpuInstr<bits<8> op, dag outs, dag ins, string asmstr, list<dag> pattern> : Instruction
 {
     // Inst and Size: for tablegen(... -gen-emitter) and
     // tablegen(... -gen-disassembler) in CMakeLists.txt
@@ -34,7 +34,7 @@ class BCpuInstr<bits<8> op, dag outs, dag ins, string asmstr, list<dag> pattern>
     let Pattern     = pattern;
 }
 
-class BCpuPseudoInstr<dag outs, dag ins, string asmstr, list<dag> pattern>: BCpuInstr<0, outs, ins, asmstr, pattern> {
+class BCpuPseudoInstr<dag outs, dag ins, string asmstr, list<dag> pattern> : BCpuInstr<0, outs, ins, asmstr, pattern> {
     let isPseudo = 1;
     let isCodeGenOnly = 1;
 }

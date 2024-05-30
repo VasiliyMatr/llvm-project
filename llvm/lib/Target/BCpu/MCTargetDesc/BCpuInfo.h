@@ -3,12 +3,33 @@
 
 #include "llvm/MC/MCInstrDesc.h"
 
-namespace llvm::BCpuOp {
+namespace llvm {
 
-enum OperandType : unsigned {
-  OPERAND_SIMM16 = MCOI::OPERAND_FIRST_TARGET
+namespace BCpuCC {
+
+enum CondCode {
+  EQ,
+  NE,
+  LE,
+  GT,
+  LEU,
+  GTU,
+  INVALID,
 };
 
-} // namespace llvm::BCpuOp
+CondCode getOppositeBranchCondition(CondCode);
+
+} // namespace BCpuCC
+
+namespace BCpuOp {
+
+enum OperandType : unsigned {
+  OPERAND_SIMM16 = MCOI::OPERAND_FIRST_TARGET,
+  OPERAND_UIMM16
+};
+
+} // namespace BCpuOp
+
+} // namespace llvm
 
 #endif // BCPUINFO_H
