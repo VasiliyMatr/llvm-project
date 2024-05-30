@@ -20,6 +20,8 @@ struct BCpuInstPrinter : public MCInstPrinter {
                  const MCSubtargetInfo &STI, raw_ostream &O) override;
 
   void printOperand(const MCInst *MI, int OpNo, raw_ostream &OS);
+  void printBranchOperand(const MCInst *MI, uint64_t Address, unsigned OpNo,
+                          raw_ostream &O);
 };
 
 } // end namespace llvm
