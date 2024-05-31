@@ -53,6 +53,10 @@ BCpuTargetLowering::BCpuTargetLowering(const TargetMachine &TM,
   setOperationAction(ISD::SUB, MVT::i32, Legal);
   setOperationAction(ISD::MUL, MVT::i32, Legal);
 
+  setOperationAction(ISD::SHL, MVT::i32, Legal);
+  setOperationAction(ISD::SRL, MVT::i32, Legal);
+  setOperationAction(ISD::SRA, MVT::i32, Legal);
+
   setOperationAction(ISD::LOAD, MVT::i32, Legal);
   setOperationAction(ISD::STORE, MVT::i32, Legal);
 
@@ -62,8 +66,8 @@ BCpuTargetLowering::BCpuTargetLowering(const TargetMachine &TM,
   setOperationAction(ISD::BR_CC, MVT::i32, Custom);
 
   setOperationAction(ISD::FRAMEADDR, MVT::i32, Legal);
-  setOperationAction(ISD::INTRINSIC_VOID, MVT::i32, Custom);
-  setOperationAction(ISD::INTRINSIC_WO_CHAIN, MVT::i32, Custom);
+  // setOperationAction(ISD::INTRINSIC_VOID, MVT::i32, Custom);
+  // setOperationAction(ISD::INTRINSIC_WO_CHAIN, MVT::i32, Custom);
 }
 
 const char *BCpuTargetLowering::getTargetNodeName(unsigned Opcode) const {
@@ -549,4 +553,67 @@ bool BCpuTargetLowering::isLegalAddressingMode(const DataLayout &DL,
   }
 
   llvm_unreachable("");
+}
+
+// No tailcall support
+bool BCpuTargetLowering::mayBeEmittedAsTailCall(const CallInst *CI) const {
+  return false;
+}
+
+static void translateSetCCForBranch(const SDLoc &DL, SDValue &LHS, SDValue &RHS,
+                                    ISD::CondCode &CC, SelectionDAG &DAG) {
+  switch (CC) {
+  case ISD::SETLT:
+  case ISD::SETGE:
+    CC = ISD::getSetCCSwappedOperands(CC);
+    std::swap(LHS, RHS);
+    break;
+
+  default:
+    break;
+  }
+}
+
+SDValue BCpuTargetLowering::lowerBR_CC(SDValue Op, SelectionDAG &DAG) const {
+  SDValue CC = Op.getOperand(1);
+  SDValue LHS = Op.getOperand(2);
+  SDValue RHS = Op.getOperand(3);
+  SDValue Block = Op->getOperand(4);
+  SDLoc DL(Op);
+
+  assert(LHS.getValueType() == MVT::i32);
+
+  ISD::CondCode CCVal = cast<CondCodeSDNode>(CC)->get();
+  translateSetCCForBranch(DL, LHS, RHS, CCVal, DAG);
+  SDValue TargetCC = DAG.getCondCode(CCVal);
+
+  return DAG.getNode(BCpuISD::BR_CC, DL, Op.getValueType(), Op.getOperand(0),
+                     LHS, RHS, TargetCC, Block);
+}
+
+SDValue BCpuTargetLowering::lowerFRAMEADDR(SDValue Op,
+                                           SelectionDAG &DAG) const {
+  const BCpuRegisterInfo &RI = *STI.getRegisterInfo();
+  MachineFunction &MF = DAG.getMachineFunction();
+  MachineFrameInfo &MFI = MF.getFrameInfo();
+  MFI.setFrameAddressIsTaken(true);
+  Register FrameReg = RI.getFrameRegister(MF);
+  EVT VT = Op.getValueType();
+  SDLoc DL(Op);
+  SDValue FrameAddr = DAG.getCopyFromReg(DAG.getEntryNode(), DL, FrameReg, VT);
+  // Only for current frame
+  assert(cast<ConstantSDNode>(Op.getOperand(0))->getZExtValue() == 0);
+  return FrameAddr;
+}
+
+SDValue BCpuTargetLowering::LowerOperation(SDValue Op,
+                                           SelectionDAG &DAG) const {
+  switch (Op->getOpcode()) {
+  case ISD::BR_CC:
+    return lowerBR_CC(Op, DAG);
+  case ISD::FRAMEADDR:
+    return lowerFRAMEADDR(Op, DAG);
+  default:
+    llvm_unreachable("");
+  }
 }

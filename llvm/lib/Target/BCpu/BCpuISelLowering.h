@@ -28,6 +28,9 @@ public:
   explicit BCpuTargetLowering(const TargetMachine &TM,
                               const BCpuSubtarget &STI);
 
+  /// Provide custom lowering hooks for some operations.
+  SDValue LowerOperation(SDValue Op, SelectionDAG &DAG) const override;
+
   /// This method returns the name of a target specific DAG node.
   const char *getTargetNodeName(unsigned Opcode) const override;
 
@@ -68,6 +71,11 @@ private:
                       bool IsVarArg,
                       const SmallVectorImpl<ISD::OutputArg> &ArgsFlags,
                       LLVMContext &Context) const override;
+
+  bool mayBeEmittedAsTailCall(const CallInst *CI) const override;
+
+  SDValue lowerBR_CC(SDValue Op, SelectionDAG &DAG) const;
+  SDValue lowerFRAMEADDR(SDValue Op, SelectionDAG &DAG) const;
 };
 
 } // namespace llvm

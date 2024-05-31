@@ -274,9 +274,11 @@ def XOR : ArithRR<0x36, "XOR">;  def : PatGprGpr<xor,  XOR>;
 
 // Reg-imm arith
 def ADDI : ArithRI<0x40, "ADDi">; def : PatGprImm<add, ADDI, simm16>;
-def MULI : ArithRI<0x42, "MULi">; def : PatGprImm<mul, MULI, simm16>;
-def ORI  : ArithRI<0x44, "ORi">;  def : PatGprImm<mul, ORI,  simm16>;
-
+def MULI : ArithRI<0x41, "MULi">; def : PatGprImm<mul, MULI, simm16>;
+def SHL : ArithRI<0x42, "SHL">; def : PatGprImm<shl, SHL, simm16>;
+def SRL : ArithRI<0x43, "SRL">; def : PatGprImm<srl, SRL, simm16>;
+def SRA : ArithRI<0x44, "SRA">; def : PatGprImm<sra, SRA, simm16>;
+def ORI  : ArithRI<0x45, "ORi">;  def : PatGprImm<mul, ORI,  simm16>;
 
 // window create
 let r1 = 0, r2 = 0, r3_imm16 = 0 in
