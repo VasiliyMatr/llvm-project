@@ -98,4 +98,9 @@ extern "C" void LLVMInitializeBCpuTargetMC() {
   TargetRegistry::RegisterMCInstPrinter(bcpu_target, createBCpuMCInstPrinter);
   TargetRegistry::RegisterAsmTargetStreamer(bcpu_target,
                                             createTargetAsmStreamer);
+
+  // Register the MC Code Emitter.
+  TargetRegistry::RegisterMCCodeEmitter(bcpu_target, createBCpuMCCodeEmitter);
+  // Register the asm backend.
+  TargetRegistry::RegisterMCAsmBackend(bcpu_target, createBCpuAsmBackend);
 }

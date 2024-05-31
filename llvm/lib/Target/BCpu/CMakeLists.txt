@@ -9,6 +9,7 @@ tablegen(LLVM BCpuGenCallingConv.inc -gen-callingconv)
 tablegen(LLVM BCpuGenDAGISel.inc -gen-dag-isel)
 tablegen(LLVM BCpuGenMCPseudoLowering.inc -gen-pseudo-lowering)
 tablegen(LLVM BCpuGenAsmWriter.inc -gen-asm-writer)
+tablegen(LLVM BCpuGenMCCodeEmitter.inc -gen-emitter)
 
 add_public_tablegen_target(BCpuCommonTableGen)
 
