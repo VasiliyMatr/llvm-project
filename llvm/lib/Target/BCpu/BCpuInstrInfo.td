@@ -151,30 +151,30 @@ class PatGprGpr<SDPatternOperator OpNode, BCpuInstr Instr>
     : Pat<(OpNode GPR:$r1, GPR:$r2), (Instr GPR:$r1, GPR:$r2)>;
 
 class PatGprImm<SDPatternOperator OpNode, BCpuInstr Instr, ImmLeaf ImmType>
-    : Pat<(i32 (OpNode (i32 GPR:$r1), ImmType:$r3_imm)),
-          (Instr GPR:$r1, ImmType:$r3_imm)>;
+    : Pat<(i32 (OpNode (i32 GPR:$r1), ImmType:$r3_imm16)),
+          (Instr GPR:$r1, ImmType:$r3_imm16)>;
 
 class PatBcc<CondCode Cond, BCpuInstr Instr>
-    : Pat<(bcpu_brcc GPR:$r1, GPR:$r2, Cond, bb:$r3_imm),
-          (Instr GPR:$r1, GPR:$r2, btarget16:$r3_imm)>;
+    : Pat<(bcpu_brcc GPR:$r1, GPR:$r2, Cond, bb:$r3_imm16),
+          (Instr GPR:$r1, GPR:$r2, btarget16:$r3_imm16)>;
 
 // === Instructions formats
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0,
 isBranch = 1, isTerminator = 1 in
 class BranchCC<bits<8> op, string opcodestr>
-    : BCpuInstr<op, (outs), (ins GPR:$r1, GPR:$r2, btarget16:$r3_imm),
-              !strconcat(opcodestr, " $r1 $r2 $r3_imm"), []>;
+    : BCpuInstr<op, (outs), (ins GPR:$r1, GPR:$r2, btarget16:$r3_imm16),
+              !strconcat(opcodestr, " $r1 $r2 $r3_imm16"), []>;
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class ArithRR<bits<8> op, string opcodestr>
-    : BCpuInstr<op, (outs GPR:$r1), (ins GPR:$r2, GPR:$r3_imm),
-              !strconcat(opcodestr, " $r1 $r2 $r3_imm"), []>;
+    : BCpuInstr<op, (outs GPR:$r1), (ins GPR:$r2, GPR:$r3_imm16),
+              !strconcat(opcodestr, " $r1 $r2 $r3_imm16"), []>;
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class ArithRI<bits<8> op, string opcodestr>
-    : BCpuInstr<op, (outs GPR:$r1), (ins GPR:$r2, simm16:$r3_imm),
-              !strconcat(opcodestr, " $r1 $r2 $r3_imm"), []>;
+    : BCpuInstr<op, (outs GPR:$r1), (ins GPR:$r2, simm16:$r3_imm16),
+              !strconcat(opcodestr, " $r1 $r2 $r3_imm16"), []>;
 
 // === Instructions
 
@@ -182,14 +182,14 @@ class ArithRI<bits<8> op, string opcodestr>
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0,
 isBarrier = 1, isBranch = 1, isTerminator = 1,
 r1 = 0, r2 = 0 in
-def B : BCpuInstr<0xB0, (outs), (ins btarget16:$r3_imm),
-    "B $r3_imm", [(br bb:$r3_imm)]>;
+def B : BCpuInstr<0xB0, (outs), (ins btarget16:$r3_imm16),
+    "B $r3_imm16", [(br bb:$r3_imm16)]>;
 
 // BL: branch and link reg (call)
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0,
 isCall = 1, isBranch = 1, isTerminator = 1, r2 = 0 in
-def BL : BCpuInstr<0xB1, (outs GPR:$r1), (ins ctarget16:$r3_imm),
-    "BL $r1 $r3_imm", []>;
+def BL : BCpuInstr<0xB1, (outs GPR:$r1), (ins ctarget16:$r3_imm16),
+    "BL $r1 $r3_imm16", []>;
 
 // BR: indirect branch
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0,
@@ -207,9 +207,9 @@ def PseudoRET : BCpuPseudoInstr<(outs), (ins),
 
 // CALL = BL R0
 let isCall = 1, Defs = [R0] in
-def PseudoCALL : BCpuPseudoInstr<(outs), (ins ctarget16:$r3_imm),
-    "# PseudoCALL", [(bcpu_call tglobaladdr:$r3_imm)]>,
-    PseudoInstExpansion<(BL R0, ctarget16:$r3_imm)>;
+def PseudoCALL : BCpuPseudoInstr<(outs), (ins ctarget16:$r3_imm16),
+    "# PseudoCALL", [(bcpu_call tglobaladdr:$r3_imm16)]>,
+    PseudoInstExpansion<(BL R0, ctarget16:$r3_imm16)>;
 
 def BEQ  : BranchCC<0xBA, "B.EQ">;
 def BNE  : BranchCC<0xBB, "B.NE">;
@@ -241,27 +241,27 @@ def MOVHI : BCpuInstr<0x11, (outs GPR:$r1), (ins i32hi16:$imm),
 
 // STi: store with base reg and offset
 let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
-def STI : BCpuInstr<0x20, (outs), (ins GPR:$r1, GPR:$r2, simm16:$r3_imm),
-    "STi $r1 ${r2} ${r3_imm}", []>;
+def STI : BCpuInstr<0x20, (outs), (ins GPR:$r1, GPR:$r2, simm16:$r3_imm16),
+    "STi $r1 ${r2} ${r3_imm16}", []>;
 
 def : Pat<(store (i32 GPR:$r1), BaseAddr:$r2),
     (STI GPR:$r1, BaseAddr:$r2, 0)>;
-def : Pat<(store (i32 GPR:$r1), (add BaseAddr:$r2, simm16:$r3_imm)),
-    (STI GPR:$r1, BaseAddr:$r2, simm16:$r3_imm)>;
-def : Pat<(store (i32 GPR:$r1), (add AddrFI:$r2, simm16:$r3_imm)),
-    (STI GPR:$r1, AddrFI:$r2, simm16:$r3_imm)>;
+def : Pat<(store (i32 GPR:$r1), (add BaseAddr:$r2, simm16:$r3_imm16)),
+    (STI GPR:$r1, BaseAddr:$r2, simm16:$r3_imm16)>;
+def : Pat<(store (i32 GPR:$r1), (add AddrFI:$r2, simm16:$r3_imm16)),
+    (STI GPR:$r1, AddrFI:$r2, simm16:$r3_imm16)>;
 
 // LDi: load with base reg and offset
 let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
-def LDI: BCpuInstr<0x21, (outs GPR:$r1), (ins GPR:$r2, simm16:$r3_imm),
-    "LDi $r1 ${r2} ${r3_imm}", []>;
+def LDI: BCpuInstr<0x21, (outs GPR:$r1), (ins GPR:$r2, simm16:$r3_imm16),
+    "LDi $r1 ${r2} ${r3_imm16}", []>;
 
 def : Pat<(i32 (load BaseAddr:$r2)),
     (LDI BaseAddr:$r2, 0)>;
-def : Pat<(i32 (load (add BaseAddr:$r2, simm16:$r3_imm))),
-    (LDI BaseAddr:$r2, simm16:$r3_imm)>;
-def : Pat<(i32 (load (add AddrFI:$r2, simm16:$r3_imm))),
-    (LDI AddrFI:$r2, simm16:$r3_imm)>;
+def : Pat<(i32 (load (add BaseAddr:$r2, simm16:$r3_imm16))),
+    (LDI BaseAddr:$r2, simm16:$r3_imm16)>;
+def : Pat<(i32 (load (add AddrFI:$r2, simm16:$r3_imm16))),
+    (LDI AddrFI:$r2, simm16:$r3_imm16)>;
 
 // Reg-reg arith
 def ADD : ArithRR<0x30, "ADD">;  def : PatGprGpr<add,  ADD>;
@@ -277,15 +277,38 @@ def ADDI : ArithRI<0x40, "ADDi">; def : PatGprImm<add, ADDI, simm16>;
 def MULI : ArithRI<0x42, "MULi">; def : PatGprImm<mul, MULI, simm16>;
 def ORI  : ArithRI<0x44, "ORi">;  def : PatGprImm<mul, ORI,  simm16>;
 
+
+// window create
+let r1 = 0, r2 = 0, r3_imm16 = 0 in
+def WINDOW_CREATE : BCpuInstr<0xF0, (outs), (ins), "WINDOW_CREATE", [(int_bcpu_window_create)]>;
+
+// window set pixel
+def WINDOW_SET_PIXEL : BCpuInstr<0xF1, (outs), (ins GPR:$r1, GPR:$r2, GPR:$r3_imm16),
+    "WINDOW_SET_PIXEL $r1 $r2 $r3_imm16", [(int_bcpu_window_set_pixel GPR:$r1, GPR:$r2, GPR:$r3_imm16)]>;
+
+// window update
+let r1 = 0, r2 = 0, r3_imm16 = 0 in
+def WINDOW_UPDATE : BCpuInstr<0xF2, (outs), (ins), "WINDOW_UPDATE", [(int_bcpu_window_update)]>;
+
+// mul fixed
+def MUL_FIXED : BCpuInstr<0xF3, (outs GPR:$r1), (ins GPR:$r2, GPR:$r3_imm16),
+    "MUL_FIXED $r1 $r2, $r3_imm16",
+    [(set GPR:$r1, (int_bcpu_mul_fixed GPR:$r2, GPR:$r3_imm16))]>;
+
+// div fixed
+def DIV_FIXED : BCpuInstr<0xF4, (outs GPR:$r1), (ins GPR:$r2, GPR:$r3_imm16),
+    "DIV_FIXED $r1 $r2, $r3_imm16",
+    [(set GPR:$r1, (int_bcpu_div_fixed GPR:$r2, GPR:$r3_imm16))]>;
+
 // === Other patterns
 
 // mov i16 imm
-def : Pat<(i32 i32li16:$r3_imm), (MOVLI imm:$r3_imm)>;
+def : Pat<(i32 i32li16:$r3_imm16), (MOVLI imm:$r3_imm16)>;
 
 // mov i32 imm
-def : Pat<(i32 imm:$r3_imm), (ORI
-        (MOVHI (HI16 imm:$r3_imm)),
-        (LI16 imm:$r3_imm)
+def : Pat<(i32 imm:$imm), (ORI
+        (MOVHI (HI16 imm:$imm)),
+        (LI16 imm:$imm)
 )>;
 
 

@@ -1,0 +1,7 @@
+BUILTIN(engine_windowCreate, "v", "nc")
+BUILTIN(engine_windowSetPixel, "vUiUiUi", "nc")
+BUILTIN(engine_windowUpdate, "v", "nc")
+BUILTIN(engine_mulFixed, "UiUiUi", "nc")
+BUILTIN(engine_divFixed, "UiUiUi", "nc")
+
+#undef BUILTIN

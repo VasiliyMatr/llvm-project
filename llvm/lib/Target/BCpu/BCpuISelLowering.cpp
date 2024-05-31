@@ -13,9 +13,9 @@
 #include "llvm/CodeGen/ValueTypes.h"
 #include "llvm/IR/CallingConv.h"
 #include "llvm/IR/Intrinsics.h"
+#include "llvm/IR/IntrinsicsBCpu.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/ErrorHandling.h"
-#include "llvm/CodeGen/MachineFunction.h"
 
 #include "BCpu.h"
 #include "BCpuISelLowering.h"
@@ -50,6 +50,7 @@ BCpuTargetLowering::BCpuTargetLowering(const TargetMachine &TM,
     setOperationAction(Opc, MVT::i32, Expand);
 
   setOperationAction(ISD::ADD, MVT::i32, Legal);
+  setOperationAction(ISD::SUB, MVT::i32, Legal);
   setOperationAction(ISD::MUL, MVT::i32, Legal);
 
   setOperationAction(ISD::LOAD, MVT::i32, Legal);
@@ -61,6 +62,8 @@ BCpuTargetLowering::BCpuTargetLowering(const TargetMachine &TM,
   setOperationAction(ISD::BR_CC, MVT::i32, Custom);
 
   setOperationAction(ISD::FRAMEADDR, MVT::i32, Legal);
+  setOperationAction(ISD::INTRINSIC_VOID, MVT::i32, Custom);
+  setOperationAction(ISD::INTRINSIC_WO_CHAIN, MVT::i32, Custom);
 }
 
 const char *BCpuTargetLowering::getTargetNodeName(unsigned Opcode) const {
@@ -69,6 +72,8 @@ const char *BCpuTargetLowering::getTargetNodeName(unsigned Opcode) const {
     return "BCpuISD::CALL";
   case BCpuISD::RET:
     return "BCpuISD::RET";
+  case BCpuISD::BR_CC:
+    return "BCpuISD::BR_CC";
   }
   return nullptr;
 }
@@ -118,7 +123,8 @@ SDValue BCpuTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   // Update MachineFrameInfo
   MFI.setHasCalls(true);
   unsigned CurrMaxCallFrameSize = MF.getFrameInfo().getMaxCallFrameSize();
-  MF.getFrameInfo().setMaxCallFrameSize(std::max(CurrMaxCallFrameSize, NumBytes));
+  MF.getFrameInfo().setMaxCallFrameSize(
+      std::max(CurrMaxCallFrameSize, NumBytes));
 
   // Create local copies for byval args
   SmallVector<SDValue, 8> ByValArgs;
