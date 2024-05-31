@@ -55,7 +55,7 @@ class ImmAsmOperand<string prefix, int width> : AsmOperandClass {
 // 16-bit signed immediate operand
 def simm16 : Operand<i32>, ImmLeaf<i32, [{ return isInt<16>(Imm); }]> {
     let ParserMatchClass = ImmAsmOperand<"S", 16>;
-    let EncoderMethod = "getImm16OpValue";
+    let EncoderMethod = "getSImm16OpValue";
     let DecoderMethod = "decodeSImmOperand<16>";
     let MCOperandPredicate = [{
         int64_t Imm;
@@ -70,7 +70,7 @@ def simm16 : Operand<i32>, ImmLeaf<i32, [{ return isInt<16>(Imm); }]> {
 // 16-bit unsigned immediate operand
 def uimm16 : Operand<i32>, ImmLeaf<i32, [{ return isInt<16>(Imm); }]> {
     let ParserMatchClass = ImmAsmOperand<"U", 16>;
-    let EncoderMethod = "getImm16OpValue";
+    let EncoderMethod = "getUImm16OpValue";
     let DecoderMethod = "decodeUImmOperand<16>";
     let MCOperandPredicate = [{
         int64_t Imm;
@@ -193,9 +193,9 @@ def BL : BCpuInstr<0xB1, (outs GPR:$r1), (ins ctarget16:$r3_imm16),
 
 // BR: indirect branch
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0,
-isCall = 1, isBranch = 1, isTerminator = 1 in
-def BR : BCpuInstr<0xB2, (outs), (ins GPR:$rs1),
-    "BR $rs1", [(brind GPR:$rs1)]>;
+isCall = 1, isBranch = 1, isTerminator = 1, r2 = 0, r3_imm16 = 0 in
+def BR : BCpuInstr<0xB2, (outs), (ins GPR:$r1),
+    "BR $r1", [(brind GPR:$r1)]>;
 
 // No BLR (indirect branch and link reg) support
 
@@ -226,18 +226,17 @@ def : PatBcc<SETULE, BLEU>;
 def : PatBcc<SETUGT, BGTU>;
 
 // MOVli: move lower 16-bit immediate
-let isAsCheapAsAMove = 1, isCodeGenOnly = 1,
-    isReMaterializable = 1 in
-def MOVLI : BCpuInstr<0x10, (outs GPR:$rd), (ins i32li16:$imm),
-                "MOVli $rd $imm",
-                [(set GPR:$rd, i32li16:$imm)]>;
+let isAsCheapAsAMove = 1, isCodeGenOnly = 1, isReMaterializable = 1, r2 = 0 in
+def MOVLI : BCpuInstr<0x10, (outs GPR:$r1), (ins i32li16:$r3_imm16),
+                "MOVli $r1 $r3_imm16",
+                [(set GPR:$r1, i32li16:$r3_imm16)]>;
 
 // MOVhi: move high 16-bit immediate
 let isAsCheapAsAMove = 1, isCodeGenOnly = 1,
-    isReMaterializable = 1, r2 = 0  in
-def MOVHI : BCpuInstr<0x11, (outs GPR:$r1), (ins i32hi16:$imm),
-                     "MOVhi $r1 $imm",
-                     [(set GPR:$r1, i32hi16:$imm)]>;
+    isReMaterializable = 1, r2 = 0 in
+def MOVHI : BCpuInstr<0x11, (outs GPR:$r1), (ins i32hi16:$r3_imm16),
+                     "MOVhi $r1 $r3_imm16",
+                     [(set GPR:$r1, i32hi16:$r3_imm16)]>;
 
 // STi: store with base reg and offset
 let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in

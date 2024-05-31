@@ -893,6 +893,11 @@ enum : unsigned {
   EF_CUDA_VIRTUAL_SM = 0xff0000,
 };
 
+// ELF Relocation type for BCpu
+enum {
+#include "ELFRelocs/BCpu.def"
+};
+
 // ELF Relocation types for BPF
 enum {
 #include "ELFRelocs/BPF.def"

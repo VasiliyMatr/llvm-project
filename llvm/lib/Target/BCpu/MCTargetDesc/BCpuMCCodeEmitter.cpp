@@ -22,6 +22,7 @@
 #include "llvm/TargetParser/SubtargetFeature.h"
 
 #include "BCpu.h"
+#include "MCTargetDesc/BCpuFixupKinds.h"
 #include "MCTargetDesc/BCpuMCTargetDesc.h"
 
 using namespace llvm;
@@ -36,8 +37,7 @@ class BCpuMCCodeEmitter : public MCCodeEmitter {
   MCContext &Ctx;
 
 public:
-  BCpuMCCodeEmitter(const MCInstrInfo &, MCContext &ctx)
-      : Ctx(ctx) {}
+  BCpuMCCodeEmitter(const MCInstrInfo &, MCContext &ctx) : Ctx(ctx) {}
   BCpuMCCodeEmitter(const BCpuMCCodeEmitter &) = delete;
   BCpuMCCodeEmitter &operator=(const BCpuMCCodeEmitter &) = delete;
 
@@ -59,24 +59,27 @@ public:
   unsigned getSImm16OpValue(const MCInst &MI, unsigned OpNo,
                             SmallVectorImpl<MCFixup> &Fixups,
                             const MCSubtargetInfo &STI) const;
+  unsigned getBranchTarget16OpValue(const MCInst &MI, unsigned OpNo,
+                                    SmallVectorImpl<MCFixup> &Fixups,
+                                    const MCSubtargetInfo &STI) const;
 };
 
 } // end anonymous namespace
 
 void BCpuMCCodeEmitter::encodeInstruction(const MCInst &MI,
-                                           SmallVectorImpl<char> &CB,
-                                           SmallVectorImpl<MCFixup> &Fixups,
-                                           const MCSubtargetInfo &STI) const {
+                                          SmallVectorImpl<char> &CB,
+                                          SmallVectorImpl<MCFixup> &Fixups,
+                                          const MCSubtargetInfo &STI) const {
   unsigned Bits = getBinaryCodeForInstr(MI, Fixups, STI);
   support::endian::write(CB, Bits, llvm::endianness::little);
 
-  ++MCNumEmitted;  // Keep track of the # of mi's emitted.
+  ++MCNumEmitted; // Keep track of the # of mi's emitted.
 }
 
-unsigned BCpuMCCodeEmitter::
-getMachineOpValue(const MCInst &MI, const MCOperand &MO,
-                  SmallVectorImpl<MCFixup> &Fixups,
-                  const MCSubtargetInfo &STI) const {
+unsigned
+BCpuMCCodeEmitter::getMachineOpValue(const MCInst &MI, const MCOperand &MO,
+                                     SmallVectorImpl<MCFixup> &Fixups,
+                                     const MCSubtargetInfo &STI) const {
   if (MO.isReg())
     return Ctx.getRegisterInfo()->getEncodingValue(MO.getReg());
 
@@ -94,10 +97,9 @@ getMachineOpValue(const MCInst &MI, const MCOperand &MO,
   return 0;
 }
 
-unsigned
-BCpuMCCodeEmitter::getSImm16OpValue(const MCInst &MI, unsigned OpNo,
-                                     SmallVectorImpl<MCFixup> &Fixups,
-                                     const MCSubtargetInfo &STI) const {
+unsigned BCpuMCCodeEmitter::getSImm16OpValue(const MCInst &MI, unsigned OpNo,
+                                             SmallVectorImpl<MCFixup> &Fixups,
+                                             const MCSubtargetInfo &STI) const {
   const MCOperand &MO = MI.getOperand(OpNo);
   if (MO.isImm())
     return MO.getImm();
@@ -114,9 +116,29 @@ BCpuMCCodeEmitter::getSImm16OpValue(const MCInst &MI, unsigned OpNo,
   return 0;
 }
 
+/// getBranchTarget21OpValue - Return binary encoding of the branch
+/// target operand. If the machine operand requires relocation,
+/// record the relocation and return zero.
+unsigned BCpuMCCodeEmitter::
+getBranchTarget16OpValue(const MCInst &MI, unsigned OpNo,
+                         SmallVectorImpl<MCFixup> &Fixups,
+                         const MCSubtargetInfo &STI) const {
+  const MCOperand &MO = MI.getOperand(OpNo);
+
+  // If the destination is an immediate, divide by 4.
+  if (MO.isImm()) return MO.getImm() / 4;
+
+  assert(MO.isExpr() &&
+         "getBranchTarget16OpValue expects only expressions or immediates");
+
+  Fixups.push_back(MCFixup::create(0, MO.getExpr(),
+                                   MCFixupKind(BCpu::fixup_BCpu_PC16)));
+  return 0;
+}
+
 #include "BCpuGenMCCodeEmitter.inc"
 
 MCCodeEmitter *llvm::createBCpuMCCodeEmitter(const MCInstrInfo &MCII,
-                                              MCContext &Ctx) {
+                                             MCContext &Ctx) {
   return new BCpuMCCodeEmitter(MCII, Ctx);
 }

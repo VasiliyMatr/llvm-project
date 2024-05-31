@@ -19,6 +19,10 @@ enum CondCode {
 
 CondCode getOppositeBranchCondition(CondCode);
 
+enum BRCondCode {
+  BREQ = 0x0,
+};
+
 } // namespace BCpuCC
 
 namespace BCpuOp {

@@ -26,6 +26,7 @@ add_llvm_target(BCpuCodeGen
 
     LINK_COMPONENTS
     AsmPrinter
+    Analysis
     CodeGen
     Core
     Support
@@ -34,6 +35,7 @@ add_llvm_target(BCpuCodeGen
     BCpuDesc
     BCpuInfo
     SelectionDAG
+    GlobalISel
 
     ADD_TO_COMPONENT
     BCpu

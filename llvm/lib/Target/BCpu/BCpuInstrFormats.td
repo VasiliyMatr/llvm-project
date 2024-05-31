@@ -19,9 +19,9 @@ class BCpuInstr<bits<8> op, dag outs, dag ins, string asmstr, list<dag> pattern>
     field bits<32> Inst;
 
     bits<8> Opcode = op;
-    bits<4>  r1 = 0;
-    bits<4>  r2 = 0;
-    bits<16> r3_imm16 = 0;
+    bits<4>  r1;
+    bits<4>  r2;
+    bits<16> r3_imm16;
 
     let Inst{31-24} = Opcode;
     let Inst{23-20} = r1;
